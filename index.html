@@ -157,6 +157,9 @@
               }
             });
           }
+          if (this.ball.y > this.sys.game.config.height) {
+            this.resetBall();
+          }
         }
 
         hitAlien(ball, alien) {
