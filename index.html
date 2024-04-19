@@ -52,10 +52,15 @@
             .setImmovable(true)
             .setCollideWorldBounds(true);
 
-          // Create the ball with dynamic physics
-          this.ball = this.physics.add.image(136, 1124, "assets", "ball").setCollideWorldBounds(true).setBounce(1, 1); // Ensure the ball bounces off world bounds and objects
-          this.ball.setData("onPaddle", true); // set on paddle to true when inittially creating the ball
-          this.ball.setBounce(1, 1); // Perfectly elastic collision
+   // Create the ball with dynamic physics
+   this.ball = this.physics.add.image(780, 500, "assets", "ball").setCollideWorldBounds(true).setBounce(1, 1); // Ensure the ball bounces off world bounds and objects
+    this.ball.setData("onPaddle", true); // set on paddle to true when initially creating the ball
+    this.ball.setBounce(1, 1); // Perfectly elastic collision
+
+    // Set the ball initially on top of the paddle
+    this.ball.setPosition(this.paddle.x, this.paddle.y - this.paddle.displayHeight / 2 - this.ball.displayHeight / 2);
+
+    // Our colliders
 
           // Our colliders
           // Set up collision between the ball and the aliens
