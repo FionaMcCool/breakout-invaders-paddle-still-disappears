@@ -1,5 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Breakout Invaders Game</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style type="text/css">
+      body {
+      }
+    </style>
+  </head>
   <body>
     <script type="text/javascript">
       // Script adapted from the Phazer 3 example using GPT 4 prompts to paste together a mash up of breakout and space invaders
@@ -28,8 +39,8 @@
           this.aliens = this.physics.add.group({
             key: "assets",
             frame: ["yellow1", "white1", "red1"],
-            frameQuantity: 10,
-            gridAlign: { width: 6, height: 3, cellWidth: 150, cellHeight: 90, x: 112, y: 50 },
+            frameQuantity: 7,
+            gridAlign: { width: 7, height: 3, cellWidth: 150, cellHeight: 90, x: 112, y: 50 },
           });
 
           // Make the aliens move and bounce
@@ -103,25 +114,49 @@
         }
 
         update() {
-          if (this.ball.y > 600) {
-            this.resetBall();
+          // Ensure the aliens group is not empty or undefined
+          if (!this.aliens || this.aliens.getChildren().length === 0) {
+            console.error("No aliens are available in the group.");
+            return; // Exit if there are no aliens to process
           }
 
-          // Check if aliens should reverse direction
           let reverseDirection = false;
+          let leftMost = 1200; // assuming game width is 1200
+          let rightMost = 0;
+
+          // Iterate safely over aliens
           this.aliens.children.iterate((alien) => {
-            if (alien.body.velocity.x > 0 && alien.x >= 800 - alien.width / 2) {
-              reverseDirection = true;
-            } else if (alien.body.velocity.x < 0 && alien.x <= alien.width / 2) {
+            if (!alien) {
+              console.error("An alien is undefined during iteration.");
+              return; // Skip undefined aliens
+            }
+
+            // Track the furthest left and right aliens to determine need to reverse
+            if (alien.x < leftMost) {
+              leftMost = alien.x;
+            }
+            if (alien.x > rightMost) {
+              rightMost = alien.x;
+            }
+
+            // Check if any alien has reached the edge of the game world
+            if (
+              (alien.body.velocity.x > 0 && rightMost >= 1200 - alien.width / 2) ||
+              (alien.body.velocity.x < 0 && leftMost <= alien.width / 2)
+            ) {
               reverseDirection = true;
             }
           });
 
+          // If needed, reverse the direction of all aliens
           if (reverseDirection) {
-            this.alienVelocityX *= -1; // Reverse direction
+            this.alienVelocityX *= -1; // Reverse the direction
             this.aliens.children.iterate((alien) => {
-              alien.setVelocityX(this.alienVelocityX);
-              alien.y += 10; // Move down
+              if (alien) {
+                // Check alien is defined before accessing
+                alien.setVelocityX(this.alienVelocityX);
+                alien.y += 10; // Move down slightly on direction change
+              }
             });
           }
         }
