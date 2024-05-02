@@ -17,6 +17,8 @@
           this.ball;
           this.lasers;
           this.alienVelocityX = 50; // Initial horizontal velocity for aliens
+          this.lives = 3; // Start with 3 lives
+          this.livesText;
         }
 
         preload() {
@@ -27,6 +29,8 @@
         create() {
           // Enable world bounds, but disable the floor
           this.physics.world.setBoundsCollision(true, true, true, false);
+
+          this.livesText = this.add.text(16, 16, 'Lives: ' + this.lives, { fontSize: '32px', fill: '#fff' });
 
           // Create the aliens (formerly bricks) in a 10x3 grid that moves
           this.aliens = this.physics.add.group({
@@ -221,6 +225,32 @@
           console.log("After disabling laser:", laser.active, laser.visible);
           // Handle paddle hit by laser if needed, e.g., lose life, reset ball, etc.
         }
+
+         // Function to update lives UI
+    updateLivesUI() {
+        this.livesText.setText('Lives: ' + this.lives);
+    }
+
+    // Function to handle life loss
+    loseLife() {
+        this.lives--;
+
+        // Update UI
+        this.updateLivesUI();
+
+        // Check if game over
+        if (this.lives === 0) {
+            this.gameOver();
+        } else {
+            // Reset ball position and state
+            this.resetBall();
+        }
+      // Function to handle game over
+      gameOver()
+        // Display game over message or transition to game over scene
+        console.log('Game Over');
+    }
+
       }
 
       const config = {
