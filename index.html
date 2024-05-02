@@ -160,13 +160,25 @@
                 alien.y += 10; // Move down slightly on direction change
               }
             });
-          }
-          if (this.ball.y > this.sys.game.config.height) {
-            this.resetBall();
-          }
-        }
+          
+            // Check collision between ball and lasers
+    this.physics.overlap(this.ball, this.lasers, this.ballHitLaser, null, this);
 
-        hitAlien(ball, alien) {
+if (this.ball.y > this.sys.game.config.height) {
+    this.resetBall();
+}
+
+ballHitLaser(ball, laser);
+// Disable both the ball and the laser
+ball.disableBody(true, true);
+laser.disableBody(true, true);
+}
+
+// Respawn the ball on the paddle
+this.resetBall();
+}
+
+        hitAlien(ball, alien);
           alien.disableBody(true, true); // This disables and hides the alien
 
           // Slightly increase the ball's velocity and invert its Y direction to ensure it moves away
@@ -178,16 +190,16 @@
           if (this.aliens.countActive() === 0) {
             this.resetLevel();
           }
-        }
+        
 
-        resetBall() {
+        resetBall();
           this.ball.setVelocity(0);
           this.ball.setPosition(this.paddle.x, this.paddle.y - this.paddle.displayHeight / 2 - this.ball.displayHeight / 2);
           this.ball.setData("onPaddle", true);
-        }
+        
 
         //the ball won't show up again if it falls out of bounds once
-        resetLevel() {
+        resetLevel() 
           this.resetBall();
 
           this.aliens.children.each((alien) => {
@@ -196,9 +208,9 @@
 
           // Reset alien movement
           this.aliens.setVelocityX(50);
-        }
+        
 
-        alienShoots() {
+        alienShoots();
           const aliens = this.aliens.getChildren().filter((alien) => alien.active);
           if (aliens.length > 0) {
             const alien = Phaser.Utils.Array.GetRandom(aliens);
@@ -216,23 +228,23 @@
               });
             }
           }
-        }
+        
 
-        laserHitsPaddle(laser, paddle) {
+        laserHitsPaddle(laser, paddle) 
           console.log("Before disabling laser:", laser.active, laser.visible);
           laser.disableBody(true, true);
 
           console.log("After disabling laser:", laser.active, laser.visible);
           // Handle paddle hit by laser if needed, e.g., lose life, reset ball, etc.
-        }
+        
 
          // Function to update lives UI
-    updateLivesUI() {
+    updateLivesUI() 
         this.livesText.setText('Lives: ' + this.lives);
-    }
+  
 
     // Function to handle life loss
-    loseLife() {
+    loseLife() 
         this.lives--;
 
         // Update UI
@@ -249,9 +261,9 @@
       gameOver()
         // Display game over message or transition to game over scene
         console.log('Game Over');
-    }
+  
 
-      }
+    
 
       const config = {
         type: Phaser.WEBGL,
