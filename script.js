@@ -8,8 +8,9 @@ constructor();
           this.alienVelocityX = 50; // Initial horizontal velocity for aliens
     
 
-        preload();
-          this.load.atlas("assets", "assets/breakoutsprites.png", "assets/breakout.json");
+          preload()
+            this.load.atlas("assets", "assets/breakoutsprites.png", "assets/breakout.json");
+            this.load.image("monsterbullet", "assets/monsterbullet.png");
           // Load laser asset, assuming a laser image is available in the atlas
         
 
@@ -43,7 +44,8 @@ constructor();
 
           // Create the ball with dynamic physics
           this.ball = this.physics.add.image(136, 1124, "assets", "ball").setCollideWorldBounds(true).setBounce(1, 1); // Ensure the ball bounces off world bounds and objects
-          this.ball.setData("onPaddle", true); // set on paddle to true when inittially creating the ball
+          this.ball.setPosition(this.paddle.x, 500)
+          this.ball.setData(true)
           this.ball.setBounce(1, 1); // Perfectly elastic collision
 
           // Our colliders
@@ -124,12 +126,12 @@ constructor();
           // Slightly increase the ball's velocity and invert its Y direction to ensure it moves away
           // Ensure the ball has a minimum Y-velocity to prevent sticking
           let newVelocityY = Math.abs(ball.body.velocity.y) < 150 ? -150 : -ball.body.velocity.y;
-
           ball.setVelocity(newVelocityY * 1.1);
-
+        
           if (this.aliens.countActive() === 0) {
             this.resetLevel();
           }
+        
 
         resetBall();
           this.ball.setVelocity(0);
@@ -166,15 +168,31 @@ constructor();
               });
             }
           }
+           laserHitsPaddle(laser, paddle); {
+            console.log("Before disabling laser:", laser.active, laser.visible);
+  
+            console.log("After disabling laser:", laser.inactive, laser.invisible);
+             // Destroy the laser upon hitting the paddle
+             laser.disableBody(true, true);
+            // Handle paddle hit by laser if needed, e.g., lose life, reset ball, etc.
+            }
+            
+            if (this.lives <= 0) {
+              this.ball.disableBody(true, true);
+              this.paddle.disableBody(true, true);
+            }
 
-
-        laserHitsPaddle(laser, paddle);
-          console.log("Before disabling laser:", laser.active, laser.visible);
-          laser.disableBody(true, true);
-
-          console.log("After disabling laser:", laser.active, laser.visible);
-          // Handle paddle hit by laser if needed, e.g., lose life, reset ball, etc.
-    
+            resetLevel() 
+              this.resetBall();
+              this.lives = 3; // Reset lives
+              this.aliens.children.each((alien) => {
+                alien.enableBody(false, 0, 0, true, true);
+              });
+              // Reset alien movement
+              this.aliens.setVelocityX(50);
+            
+      
+        
     
 
       const config = {
