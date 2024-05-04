@@ -1,212 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <!-- Correctly include the Phaser library with the right protocol -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
-  </head>
-  <body>
-    <script type="text/javascript">
-      class SpaceBreakout extends Phaser.Scene {
+</head>
+<body>
+<script type="text/javascript">
+    class SpaceBreakout extends Phaser.Scene {
         constructor() {
-          super({ key: "SpaceBreakout" });
+            super({ key: "SpaceBreakout" });
 
-          this.aliens;
-          this.paddle;
-          this.ball;
-          this.lasers;
-          this.alienVelocityX = 50;
-          this.lives = 3;
-          this.livesText;
+            this.aliens;
+            this.paddle;
+            this.ball;
+            this.lasers;
+            this.alienVelocityX = 50;
+            this.lives = 3;
+            this.livesText;
         }
 
         preload() {
-          this.load.atlas("assets", "assets/breakoutsprites.png", "assets/breakout.json");
+            this.load.atlas("assets", "assets/breakoutsprites.png", "assets/breakout.json");
         }
 
         create() {
-          this.physics.world.setBoundsCollision(true, true, true, false);
-          this.livesText = this.add.text(16, 16, "Lives: " + this.lives, { fontSize: "32px", fill: "#fff" });
+            this.physics.world.setBoundsCollision(true, true, true, false);
+            this.livesText = this.add.text(16, 16, "Lives: " + this.lives, { fontSize: "32px", fill: "#fff" });
 
-          this.aliens = this.physics.add.group({
-            key: "assets",
-            frame: ["yellow1", "white1", "red1"],
-            frameQuantity: 7,
-            gridAlign: { width: 7, height: 3, cellWidth: 150, cellHeight: 90, x: 112, y: 50 },
-          });
+            this.aliens = this.physics.add.group({
+                key: "assets",
+                frame: ["yellow1", "white1", "red1"],
+                frameQuantity: 7,
+                gridAlign: { width: 7, height: 3, cellWidth: 150, cellHeight: 90, x: 112, y: 50 },
+            });
 
-          this.aliens.children.iterate((alien) => {
-            alien.setVelocityX(this.alienVelocityX).setCollideWorldBounds(true).setBounce(1, 0);
-          });
+            this.aliens.children.iterate((alien) => {
+                alien.setVelocityX(this.alienVelocityX).setCollideWorldBounds(true).setBounce(1, 0);
+            });
 
-          this.lasers = this.physics.add.group();
-          this.paddle = this.physics.add
-            .image(780, 500, "assets", "paddle")
-            .setImmovable(true)
-            .setCollideWorldBounds(true);
-          this.ball = this.physics.add.image(780, 480, "assets", "ball").setCollideWorldBounds(true).setBounce(1, 1);
-          this.ball.setData("onPaddle", true);
+            this.lasers = this.physics.add.group();
+            this.paddle = this.physics.add
+                .image(780, 500, "assets", "paddle")
+                .setImmovable(true)
+                .setCollideWorldBounds(true);
+            this.ball = this.physics.add.image(780, 480, "assets", "ball").setCollideWorldBounds(true).setBounce(1, 1);
+            this.ball.setPosition(this.paddle.x, 450);
+            this.ball.setData("onPaddle", true);
 
-          this.physics.add.collider(this.ball, this.aliens, this.hitAlien, null, this);
-          this.physics.add.collider(this.ball, this.paddle, this.hitPaddle, null, this);
-          this.physics.add.collider(this.lasers, this.paddle, this.laserHitsPaddle, null, this);
+            this.physics.add.collider(this.ball, this.aliens, this.hitAlien, null, this);
+            this.physics.add.collider(this.ball, this.paddle, this.hitPaddle, null, this);
+            this.physics.add.collider(this.lasers, this.paddle, this.laserHitsPaddle, null, this);
 
-          this.input.on(
-            "pointermove",
-            function (pointer) {
-              this.paddle.x = Phaser.Math.Clamp(pointer.x, 52, 1148);
-              if (this.ball.getData("onPaddle")) {
-                this.ball.x = this.paddle.x;
-              }
-            },
-            this
-          );
+            this.input.on(
+                "pointermove",
+                function (pointer) {
+                    this.paddle.x = Phaser.Math.Clamp(pointer.x, 52, 1148);
+                    if (this.ball.getData("onPaddle")) {
+                        this.ball.x = this.paddle.x;
+                    }
+                },
+                this
+            );
 
-          this.input.on(
-            "pointerup",
-            function (pointer) {
-              if (this.ball.getData("onPaddle")) {
-                this.ball.setVelocity(-75, -300);
-                this.ball.setData("onPaddle", false);
-              }
-            },
-            this
-          );
+            this.input.on(
+                "pointerup",
+                function (pointer) {
+                    if (this.ball.getData("onPaddle")) {
+                        this.ball.setVelocity(-75, -300);
+                        this.ball.setData("onPaddle", false);
+                    }
+                },
+                this
+            );
 
-          this.time.addEvent({
-            delay: 2000,
-            callback: this.alienShoots,
-            callbackScope: this,
-            loop: true,
-          });
+            this.time.addEvent({
+                delay: 2000,
+                callback: this.alienShoots,
+                callbackScope: this,
+                loop: true,
+            });
 
-          this.aliens.children.iterate((alien) => {
-            alien.setVelocityX(this.alienVelocityX);
-          });
+            this.aliens.children.iterate((alien) => {
+                alien.setVelocityX(this.alienVelocityX);
+            });
         }
 
         update() {
-          if (!this.aliens || this.aliens.getChildren().length === 0) {
-            console.error("No aliens are available in the group.");
-            return;
-          }
-
-          let reverseDirection = false;
-          let leftMost = 1200;
-          let rightMost = 0;
-
-          this.aliens.children.iterate((alien) => {
-            if (!alien) {
-              console.error("An alien is undefined during iteration.");
-              return;
+            // Check if the ball falls below a certain y-coordinate
+            if (this.ball.y > 600) {
+                this.resetBall();
             }
-            if (alien.x < leftMost) leftMost = alien.x;
-            if (alien.x > rightMost) rightMost = alien.x;
-          });
 
-          // Check if the group needs to change direction
-          if (
-            (this.alienVelocityX > 0 && rightMost >= 1200 - this.aliens.getChildren()[0].width / 2) ||
-            (this.alienVelocityX < 0 && leftMost <= this.aliens.getChildren()[0].width / 2)
-          ) {
-            reverseDirection = true;
-          }
+            if (!this.aliens || this.aliens.getChildren().length === 0) {
+                console.error("No aliens are available in the group.");
+                return;
+            }
 
-          // Reverse direction if needed and move down slightly to simulate a wave motion
-          if (reverseDirection) {
-            this.alienVelocityX *= -1; // Reverse the direction
+            let reverseDirection = false;
+            let leftMost = 1200;
+            let rightMost = 0;
+
             this.aliens.children.iterate((alien) => {
-              if (alien) {
-                alien.setVelocityX(this.alienVelocityX);
-                alien.y += 10; // Move down to simulate wave motion
-              }
+                if (!alien) {
+                    console.error("An alien is undefined during iteration.");
+                    return;
+                }
+                if (alien.x < leftMost) leftMost = alien.x;
+                if (alien.x > rightMost) rightMost = alien.x;
             });
-          }
+
+            // Check if the group needs to change direction
+            if (
+                (this.alienVelocityX > 0 && rightMost >= 1200 - this.aliens.getChildren()[0].width / 2) ||
+                (this.alienVelocityX < 0 && leftMost <= this.aliens.getChildren()[0].width / 2)
+            ) {
+                reverseDirection = true;
+            }
+
+            // Reverse direction if needed and move down slightly to simulate a wave motion
+            if (reverseDirection) {
+                this.alienVelocityX *= -1; // Reverse the direction
+                this.aliens.children.iterate((alien) => {
+                    if (alien) {
+                        alien.setVelocityX(this.alienVelocityX);
+                        alien.y += 10; // Move down to simulate wave motion
+                    }
+                });
+            }
         }
 
         hitAlien(ball, alien) {
-          alien.disableBody(true, true);
-          let newVelocityY = Math.abs(ball.body.velocity.y) < 150 ? -150 : -ball.body.velocity.y;
-          ball.setVelocityY(newVelocityY * 1.1);
-          if (this.aliens.countActive() === 0) {
-            this.resetLevel();
-          }
-        }
-
-        resetBall() {
-          this.ball.setVelocity(0);
-          this.ball.setPosition(this.paddle.x, this.paddle.y - 28);
-          this.ball.setData("onPaddle", true);
-          this.paddle.setVisible(true); // Make sure the paddle is visible
-          this.paddle.setActive(true); // Ensure the paddle is active
-          this.physics.world.enable(this.paddle); // Explicitly enable the physics body
-        }
-        resetLevel() {
-          this.resetBall();
-          this.aliens.children.each((alien) => {
-            alien.enableBody(false, 0, 0, true, true);
-          });
-          this.aliens.setVelocityX(50);
+            alien.disableBody(true, true);
+            let newVelocityY = Math.abs(ball.body.velocity.y) < 150 ? -150 : -ball.body.velocity.y;
+            ball.setVelocityY(newVelocityY * 1.1);
+            if (this.aliens.countActive() === 0) {
+                this.resetLevel();
+            }
         }
 
         alienShoots() {
-          const aliens = this.aliens.getChildren().filter((alien) => alien.active);
-          if (aliens.length > 0) {
-            const alien = Phaser.Utils.Array.GetRandom(aliens);
-            if (alien) {
-              const laser = this.lasers.create(alien.x, alien.y + 16,"monsterbullet").setVelocityY(200);
-              laser.setCollideWorldBounds(true);
-              laser.body.onWorldBounds = true;
-              this.physics.world.on("worldbounds", (body, up, down, left, right) => {
-                if (down && body.gameObject === laser) {
-                  laser.destroy();
+            const aliens = this.aliens.getChildren().filter((alien) => alien.active);
+            if (aliens.length > 0) {
+                const alien = Phaser.Utils.Array.GetRandom(aliens);
+                if (alien) {
+                    const laser = this.lasers.create(alien.x, alien.y + 16, "monsterbullet").setVelocityY(200);
+                    laser.setCollideWorldBounds(true);
+                    laser.body.onWorldBounds = true;
+                    this.physics.world.on("worldbounds", (body, up, down, left, right) => {
+                        if (down && body.gameObject === laser) {
+                            laser.destroy();
+                        }
+                    });
                 }
-              });
             }
-          }
         }
 
         laserHitsPaddle(laser, paddle) {
-          laser.disableBody(true, true);
-
-          this.loseLife();
+            laser.disableBody(true, true);
+            laser.destroy(true, true); // Destroy the laser sprite
+            this.loseLife();
         }
 
         loseLife() {
-          this.lives--;
-          this.updateLivesUI();
-          if (this.lives === 0) {
-            this.gameOver();
-          } else {
+            if (this.lives > 0) {
+                // Only decrement lives if there are lives remaining
+                this.lives--;
+                this.updateLivesUI(); // Update UI to reflect the new lives count
+            }
+
+            if (this.lives === 0) {
+                // If no lives remaining, call gameOver()
+                this.gameOver();
+            } else {
+                // Reset paddle and ball when a life is lost
+                this.resetPaddleAndBall();
+            }
+        }
+
+        resetPaddleAndBall() {
+            this.resetPaddle();
             this.resetBall();
-          }
+        }
+
+        resetPaddle() {
+            this.paddle.setVisible(true);
+            this.paddle.setActive(true);
+            this.physics.world.enable(this.paddle);
+        }
+
+        resetBall() {
+            this.ball.setVelocity(0);
+            this.ball.setPosition(this.paddle.x, 450);
+            this.ball.setData("onPaddle", true);
+        }
+
+        resetLevel() {
+            this.resetBall();
+            this.aliens.children.each((alien) => {
+                alien.enableBody(false, 0, 0, true, true);
+            });
+            this.aliens.setVelocityX(50);
         }
 
         gameOver() {
-          console.log("Game Over");
+            console.log("Game Over");
         }
 
         updateLivesUI() {
-          this.livesText.setText("Lives: " + this.lives);
+            // Update the UI to display the remaining lives
+            if (this.livesText) {
+                this.livesText.setText(`Lives: ${this.lives}`);
+            }
         }
-      }
+    }
 
-      const config = {
+    const config = {
         type: Phaser.WEBGL,
         width: 1200,
         height: 600,
         parent: "phaser-example",
         scene: [SpaceBreakout],
         physics: {
-          default: "arcade",
-          arcade: {
-            fps: 120,
-          },
+            default: "arcade",
+            arcade: {
+                fps: 120,
+            },
         },
-      };
+    };
 
-      const game = new Phaser.Game(config);
-      </script>
-    <script src="phaser.js"></script>
-    <script src="script.js"></script>
-  </body>
+    const game = new Phaser.Game(config);
+</script>
+</body>
 </html>
